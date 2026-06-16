@@ -1,0 +1,18 @@
+# Local tooling / editor
+.claude/
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Temp
+.tmp/
+.chk/
+*.tmp
