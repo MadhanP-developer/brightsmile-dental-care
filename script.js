@@ -35,6 +35,66 @@ document.querySelectorAll('.reveal').forEach((el, i) => {
   io.observe(el);
 });
 
+// ===== Counter animations (stats) =====
+const counters = document.querySelectorAll('[data-count]');
+if (counters.length) {
+  const fmt = (n) => n.toLocaleString('en-IN');
+  const run = (el) => {
+    const target = +el.dataset.count;
+    const suffix = el.dataset.suffix || '';
+    const dur = 1500;
+    const start = performance.now();
+    const step = (now) => {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round(target * eased)) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  const cio = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { run(e.target); cio.unobserve(e.target); } });
+  }, { threshold: 0.6 });
+  counters.forEach(c => cio.observe(c));
+}
+
+// ===== Active nav highlighting (scrollspy) =====
+const navLinks = [...document.querySelectorAll('.nav > a[href^="#"]')];
+const spyTargets = navLinks
+  .map(a => ({ a, sec: document.querySelector(a.getAttribute('href')) }))
+  .filter(t => t.sec);
+if (spyTargets.length) {
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = '#' + e.target.id;
+        spyTargets.forEach(t => t.a.classList.toggle('active', t.a.getAttribute('href') === id));
+      }
+    });
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  spyTargets.forEach(t => spy.observe(t.sec));
+}
+
+// ===== Testimonials auto-scroll on mobile =====
+(function () {
+  const grid = document.getElementById('tGrid');
+  if (!grid) return;
+  let timer;
+  const isMobile = () => window.matchMedia('(max-width:760px)').matches;
+  const tick = () => {
+    if (!isMobile()) return;
+    const max = grid.scrollWidth - grid.clientWidth;
+    const next = grid.scrollLeft + grid.clientWidth;
+    grid.scrollTo({ left: next > max - 8 ? 0 : next, behavior: 'smooth' });
+  };
+  const start = () => { stop(); if (isMobile()) timer = setInterval(tick, 3500); };
+  const stop = () => clearInterval(timer);
+  grid.addEventListener('touchstart', stop, { passive: true });
+  grid.addEventListener('touchend', start, { passive: true });
+  window.addEventListener('resize', start);
+  start();
+})();
+
 // ===== Booking form (demo) =====
 const bookForm = document.getElementById('bookForm');
 const bookNote = document.getElementById('bookNote');
